@@ -167,7 +167,7 @@ typedef struct {
     double avg_resp;
     double cpu_util;     /* CPU utilization (%) */
     double throughput;   /* processes per time unit */
-    int    max_late;     /* max(finish - deadline), <0 = all early */
+    int    max_late;     /* max(finish - deadline), <0 = all finish in deadline*/
 } Metrics;
 
 /* sum of all I/O bursts */
@@ -252,7 +252,7 @@ static int is_preemptive(SchedPolicy policy) {
         || policy == SCHED_MLFQ || policy == SCHED_EDF;
 }
 
-/* is a preferred over b? strict, so ties keep FIFO order */
+/* is a preferred over b? if tie, just keep FIFO order */
 static int sched_better(SchedPolicy policy, const Process *a, const Process *b) {
     switch (policy) {
         case SCHED_SJF:
@@ -289,8 +289,8 @@ static int best_ready_pos(SchedPolicy policy, const Process procs[], const int r
     return best;
 }
 
-/* run one algorithm to completion. Tick-based: each loop iteration is one
-   time unit. Input attributes stay fixed so all algorithms share the data. */
+/* run one algorithm to completion. Tick-based: each loop iteration is one time unit.
+   Input attributes stay fixed so all algorithms share the data. (Only reset runtime) */
 Metrics run_scheduler(Process procs[], int n, SchedPolicy policy, const char *name) {
     for (int i = 0; i < n; i++)
         reset_runtime(&procs[i]);
@@ -340,8 +340,7 @@ Metrics run_scheduler(Process procs[], int n, SchedPolicy policy, const char *na
             int pos = best_ready_pos(policy, procs, ready, rc);
             if (sched_better(policy, &procs[ready[pos]], &procs[running])) {
                 procs[running].state = P_READY;
-                ready[rc] = running;
-                rc++;
+                ready[rc++] = running;
                 running = -1;
             }
         }
@@ -351,8 +350,7 @@ Metrics run_scheduler(Process procs[], int n, SchedPolicy policy, const char *na
             (policy == SCHED_RR ||
              (policy == SCHED_MLQ && procs[running].queue_level == 0))) {
             procs[running].state = P_READY;
-            ready[rc] = running;
-            rc++;
+            ready[rc++] = running;
             running = -1;
         }
 
@@ -362,8 +360,7 @@ Metrics run_scheduler(Process procs[], int n, SchedPolicy policy, const char *na
             if (procs[running].mlfq_level < MLFQ_LEVELS - 1)
                 procs[running].mlfq_level++;
             procs[running].state = P_READY;
-            ready[rc] = running;
-            rc++;
+            ready[rc++] = running;
             running = -1;
         }
 
