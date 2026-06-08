@@ -1,0 +1,16 @@
+# build artifacts
+cpu_scheduler
+*.o
+*.exe
+*.out
+output.txt
+run_*.txt
+
+# editor / backup
+*.bak
+~$*
+
+# course materials and report (not for the public repo)
+*.pdf
+*.m4a
+*.docx
