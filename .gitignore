@@ -14,3 +14,6 @@ run_*.txt
 *.pdf
 *.m4a
 *.docx
+
+# personal demo prep (local only)
+QnA_대비.md
